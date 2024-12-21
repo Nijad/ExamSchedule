@@ -1,8 +1,106 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Schedule Exams";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="col-12 card p-0">
+    <div class="card-header">
+        <h2>Schedule Exams</h2>
+    </div>
+    <div class="card-body row">
+        <div class="col-5 border-end">
+            <label>
+                <input type="checkbox" id="c" />
+                Generate Time Slots
+            </label>
+            <div class="border py-3 mt-1 rounded">
+                <div class="col-10 offset-1">
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Exam Duration</label>
+                            <input type="number" step="0.25" min="0.5" max="5" value="1.5" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label>Gap Between Exams</label>
+                            <input type="number" step="0.25" min="0.25" max="1" value="0.25" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Start Exam Date</label>
+                            <input type="date" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label>Last Exam Date</label>
+                            <input type="date" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Exams per Day</label>
+                            <input type="number" step="1" min="1" max="6" value="4" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-5 offset-1">
+            <label>Course</label>
+            <input type="file" id="course" name="course" class="form-control file" />
+
+            <label>Students</label>
+            <input type="file" id="student" name="student" class="form-control file" />
+
+            <label>Rooms</label>
+            <input type="file" id="room" name="room" class="form-control file" />
+
+            <label>Time Slot</label>
+            <input type="file" id="timeSlot" name="timeSlot" class="form-control file" />
+        </div>
+    </div>
+    <div class="card-footer">
+        <button id="upload" class="btn btn-primary">Calculate</button>
+    </div>
 </div>
+
+<script>
+    $("#upload").on("click", uploadFiles);
+
+    function uploadFiles() {
+        var inputs = $(".file");
+
+        var formData = new FormData();
+
+        for (var i = 0; i != inputs.length; i++) {
+            var files = inputs[i].files;
+            formData.append("files", files[0]);
+        }
+
+        $.ajax(
+            {
+                url: "/upload",
+                data: formData,
+                //xhrFields: {
+                //    responseType: 'blob'
+                //},
+                processData: false,
+                contentType: false,
+                type: "POST",
+                success: function (result) {
+                    var blob = new Blob([result]);
+                    var a = document.createElement('a');
+                    var url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = 'Best Schedule.csv';
+                    document.body.append(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                },
+                error: function (error) {
+                    const obj = JSON.parse(error.responseText);
+                    alert(obj.msg);
+                }
+            }
+        );
+    }
+</script>
