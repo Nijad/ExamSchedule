@@ -1,4 +1,4 @@
-﻿namespace SchedualTest.Models.Entities
+﻿namespace ExamSchedule.Models.Entities
 {
     public class Student
     {

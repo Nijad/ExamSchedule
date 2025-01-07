@@ -9,7 +9,7 @@
     <div class="card-body row">
         <div class="col-5 border-end">
             <label>
-                <input type="checkbox" id="c" />
+                <input type="checkbox" id="enable" />
                 Generate Time Slots
             </label>
             <div class="border py-3 mt-1 rounded">
@@ -17,27 +17,39 @@
                     <div class="row">
                         <div class="col-6">
                             <label>Exam Duration</label>
-                            <input type="number" step="0.25" min="0.5" max="5" value="1.5" class="form-control" />
+                            <input id="examDuration" disabled type="number" step="0.25" min="0.5" max="5" value="1.5" class="form-control default-disabled" />
                         </div>
                         <div class="col-6">
                             <label>Gap Between Exams</label>
-                            <input type="number" step="0.25" min="0.25" max="1" value="0.25" class="form-control" />
+                            <input id="gap" disabled type="number" step="0.25" min="0.25" max="1" value="0.25" class="form-control default-disabled" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-6">
                             <label>Start Exam Date</label>
-                            <input type="date" class="form-control" />
+                            <input id="startDate" disabled type="date" class="form-control default-disabled" />
                         </div>
                         <div class="col-6">
                             <label>Last Exam Date</label>
-                            <input type="date" class="form-control" />
+                            <input id="lastDate" disabled type="date" class="form-control default-disabled" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-6">
                             <label>Exams per Day</label>
-                            <input type="number" step="1" min="1" max="6" value="4" class="form-control" />
+                            <input id="examPerDay" disabled type="number" step="1" min="1" max="6" value="4" class="form-control default-disabled" />
+                        </div>
+                        <div class="col-6">
+                            <label>Holidays</label>
+                            <select id="holidays" disabled class="form-select default-disabled" data-placeholder="Choose holiday" multiple>
+                                <option value="0">Sunday</option>
+                                <option value="1">Monday</option>
+                                <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5">Friday</option>
+                                <option value="6">Saturday</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -54,7 +66,17 @@
             <input type="file" id="room" name="room" class="form-control file" />
 
             <label>Time Slot</label>
-            <input type="file" id="timeSlot" name="timeSlot" class="form-control file" />
+            <input type="file" id="timeSlot" name="timeSlot" class="form-control file default-enabled" />
+            <div class="row">
+                <div class="col-6">
+                    <label>Population Size</label>
+                    <input type="number" min="10" max="100" step="10" value="10" class="form-control" id="popSize" />
+                </div>
+                <div class="col-6">
+                    <label>Max Generations</label>
+                    <input type="number" min="100" max="1000000" step="100" value="100000" class="form-control" id="maxGen" />
+                </div>
+            </div>
         </div>
     </div>
     <div class="card-footer">
@@ -65,6 +87,27 @@
 <div id="result" class="card card-body mt-3" style="display:none"></div>
 
 <script>
+    $('#holidays').select2({
+        theme: "bootstrap-5",
+        width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
+        placeholder: $(this).data('placeholder'),
+        closeOnSelect: false,
+    });
+
+    $("#enable").on("change", function () {
+        enable($(this).prop("checked"));
+    });
+
+    function enable(enable) {
+        if (enable) {
+            $(".default-disabled").prop("disabled", false);
+            $(".default-enabled").prop("disabled", true);
+        } else {
+            $(".default-disabled").prop("disabled", true);
+            $(".default-enabled").prop("disabled", false);
+        }
+    }
+
     $("#upload").on("click", uploadFiles);
 
     $(document).ajaxStart(function () {
@@ -89,29 +132,24 @@
             var files = inputs[i].files;
             formData.append("files", files[0]);
         }
-
+        formData.append("populationSize", $("#popSize").val());
+        formData.append("MaxGenerations", $("#maxGen").val());
+        formData.append("CalculateTimeSlot", $("#enable").prop("checked"));
+        formData.append("examDuration", $("#examDuration").val());
+        formData.append("gap", $("#gap").val());
+        formData.append("startDate", $("#startDate").val());
+        formData.append("lastDate", $("#lastDate").val());
+        formData.append("examPerDay", $("#examPerDay").val());
+        formData.append("holidays", $("#holidays").val());
         $.ajax(
             {
                 url: "/upload",
                 data: formData,
-                //xhrFields: {
-                //    responseType: 'blob'
-                //},
                 processData: false,
                 contentType: false,
                 type: "POST",
 
                 success: function (result) {
-                    // var blob = new Blob([result]);
-                    // var a = document.createElement('a');
-                    // var url = window.URL.createObjectURL(blob);
-                    // a.href = url;
-                    // a.download = 'Best Schedule.csv';
-                    // document.body.append(a);
-                    // a.click();
-                    // a.remove();
-                    // window.URL.revokeObjectURL(url);
-
                     $("#result").html(result);
                 },
                 error: function (error) {

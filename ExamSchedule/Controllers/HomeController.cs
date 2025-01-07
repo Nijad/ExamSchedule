@@ -1,13 +1,9 @@
 ﻿using ExamSchedule.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using SchedualTest.Models;
-using SchedualTest.Models.Entities;
-using SchedualTest.Models.Logic;
+using ExamSchedule.Models.Logic;
 using System.Diagnostics;
-using System.Text;
 
-namespace SchedualTest.Controllers
+namespace ExamSchedule.Controllers
 {
     public class HomeController : Controller
     {
@@ -29,39 +25,90 @@ namespace SchedualTest.Controllers
         public IActionResult Upload()
         {
             GAResult gaResult = new GAResult();
+
+            int populationSize = int.Parse(HttpContext.Request.Form["populationSize"]);
+            int MaxGenerations = int.Parse(HttpContext.Request.Form["MaxGenerations"]);
+            bool CalculateTimeSlot = bool.Parse(HttpContext.Request.Form["CalculateTimeSlot"]);
+            int mustFileCount = 4;
+            if (CalculateTimeSlot)
+                mustFileCount = 3;
+
             IFormFileCollection files = HttpContext.Request.Form.Files;
-            if (files == null || files.Count < 4)
+            if (files == null || files.Count < mustFileCount)
             {
                 gaResult.HasError = true;
                 gaResult.ErrorMessage = "You have to upload all files.";
                 return PartialView("ResultPV", gaResult);
             }
-
             //some validations need here
 
             IFormFile courseFile = files[0];
             IFormFile studentsFile = files[1];
             IFormFile roomsFile = files[2];
-            IFormFile timeSlotsFile = files[3];
+
             ExamScheduler scheduler = null;
-            try
+            if (!CalculateTimeSlot)
             {
-                scheduler = new ExamScheduler(courseFile, studentsFile, roomsFile, timeSlotsFile);
+                IFormFile timeSlotsFile = files[3];
+                try
+                {
+                    scheduler = new ExamScheduler(courseFile, studentsFile, roomsFile, timeSlotsFile);
+                }
+                catch (Exception ex)
+                {
+                    gaResult.HasError = true;
+                    gaResult.ErrorMessage = "Some files have wrong data.";
+                    return PartialView("ResultPV", gaResult);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                gaResult.HasError = true;
-                gaResult.ErrorMessage = "Some files have wrong data.";
-                return PartialView("ResultPV", gaResult);
+                if (string.IsNullOrEmpty(HttpContext.Request.Form["startDate"].ToString()) ||
+                    string.IsNullOrEmpty(HttpContext.Request.Form["lastDate"].ToString()))
+                {
+                    gaResult.HasError = true;
+                    gaResult.ErrorMessage = "Start and Last exam date must have a value";
+                    return PartialView("ResultPV", gaResult);
+                }
+
+                double examDuration = double.Parse(HttpContext.Request.Form["examDuration"]);
+                double gap = double.Parse(HttpContext.Request.Form["gap"]);
+                DateTime startDate = DateTime.Parse(HttpContext.Request.Form["startDate"]);
+                DateTime lastDate = DateTime.Parse(HttpContext.Request.Form["lastDate"]);
+                if (startDate > lastDate)
+                {
+                    DateTime dateTime = startDate;
+                    startDate = lastDate;
+                    lastDate = dateTime;
+                }
+
+                int examPerDay = int.Parse(HttpContext.Request.Form["examPerDay"]);
+
+                string[] days = HttpContext.Request.Form["holidays"]
+                    .ToString().Split(',', StringSplitOptions.RemoveEmptyEntries);
+                int[] holidays = new int[days.Length];
+                for (int i = 0; i < days.Length; i++)
+                    holidays[i] = int.Parse(days[i]);
+
+                try
+                {
+                    scheduler = new ExamScheduler(courseFile,
+                        studentsFile, roomsFile, examDuration, gap,
+                        startDate, lastDate, examPerDay, holidays);
+                }
+                catch (Exception ex)
+                {
+                    gaResult.HasError = true;
+                    gaResult.ErrorMessage = "Some files have wrong data.";
+                    return PartialView("ResultPV", gaResult);
+                }
             }
 
-            int populationSize = 10;
             GAOperations ga = new GAOperations(populationSize, scheduler);
 
-
             try
             {
-                gaResult = ga.RunGA(100000);
+                gaResult = ga.RunGA(MaxGenerations);
             }
             catch (Exception ex)
             {
@@ -69,16 +116,8 @@ namespace SchedualTest.Controllers
                 gaResult.ErrorMessage = ex.Message;
                 return PartialView("ResultPV", gaResult);
             }
-            //StringBuilder sb = new StringBuilder();
-            //sb.AppendLine("Stuedent,Course,Room,Exam,Start Time,Duration");
-            //foreach (Exam exam in gaResult.BestSchedule.Exams)
-            //    foreach (Student student in exam.Students)
-            //        sb.AppendLine($"{student.StudentId},{exam.Course.CourseName}," +
-            //            $"{exam.Room.RoomId},{exam.ExamId},{exam.TimeSlot.StartTime}," +
-            //            $"{exam.TimeSlot.Duration}");
 
             return PartialView("ResultPV", gaResult);
-            //return File(new UTF8Encoding().GetBytes(sb.ToString()), "text/csv", "Best Schedule.csv");
         }
 
         public IActionResult Privacy()

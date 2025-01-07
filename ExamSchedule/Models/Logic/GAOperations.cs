@@ -1,7 +1,6 @@
-﻿using SchedualTest.Models.Entities;
-using System.Collections.Generic;
+﻿using ExamSchedule.Models.Entities;
 
-namespace SchedualTest.Models.Logic
+namespace ExamSchedule.Models.Logic
 {
     public class GAOperations
     {

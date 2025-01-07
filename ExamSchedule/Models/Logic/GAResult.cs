@@ -1,6 +1,6 @@
-﻿using SchedualTest.Models.Entities;
+﻿using ExamSchedule.Models.Entities;
 
-namespace SchedualTest.Models.Logic
+namespace ExamSchedule.Models.Logic
 {
     public class GAResult
     {

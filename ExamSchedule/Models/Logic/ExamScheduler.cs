@@ -1,6 +1,6 @@
-﻿using SchedualTest.Models.Entities;
+﻿using ExamSchedule.Models.Entities;
 
-namespace SchedualTest.Models.Logic
+namespace ExamSchedule.Models.Logic
 {
     public class ExamScheduler
     {
@@ -19,7 +19,51 @@ namespace SchedualTest.Models.Logic
             Students = LoadStudents(studentsFile);
             Rooms = LoadRooms(roomsFile);
             TimeSlots = LoadTimeSlots(timeSlotsFile);
+        }
 
+        public ExamScheduler(IFormFile courseFile,
+                             IFormFile studentsFile,
+                             IFormFile roomsFile,
+                             double examDuration,
+                             double gap,
+                             DateTime startDate,
+                             DateTime lastDate,
+                             int examPerDay,
+                             int[] holidays)
+        {
+            Courses = LoadCourses(courseFile);
+            Students = LoadStudents(studentsFile);
+            Rooms = LoadRooms(roomsFile);
+            TimeSlots = new List<TimeSlot>();
+            //calculate time slots
+            DateTime day = startDate;
+            int slotId = 0;
+            while (day <= lastDate)
+            {
+                if (holidays.Contains((int)day.DayOfWeek))
+                {
+                    day = day.AddDays(1);
+                    continue;
+                }
+                double h = Math.Floor(examDuration + gap);
+                double m = (examDuration + gap - h) * 60;
+                DateTime t = new DateTime(day.Year, day.Month, day.Day, 9, 0, 0);
+                for (int i = 0; i < examPerDay; i++)
+                {
+                    TimeSlot timeSlot = new TimeSlot();
+                    timeSlot.SlotId = slotId;
+                    timeSlot.Duration = examDuration;
+                    timeSlot.StartTime = t;
+                    TimeSlots.Add(timeSlot);
+                    slotId++;
+                    if (i < examPerDay - 1)
+                    {
+                        t = t.AddHours(h);
+                        t = t.AddMinutes(m);
+                    }
+                }
+                day = day.AddDays(1);
+            }
         }
 
         private List<Course> LoadCourses(IFormFile file)
