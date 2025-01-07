@@ -62,8 +62,23 @@
     </div>
 </div>
 
+<div id="result" class="card card-body mt-3" style="display:none"></div>
+
 <script>
     $("#upload").on("click", uploadFiles);
+
+    $(document).ajaxStart(function () {
+        $("#upload").prop("disabled", "disabled");
+        $('#result').show().html("<div class='alert alert-success'>Pleas wait... I'm working</div>").addClass("text-center");
+    });
+
+    $(document).ajaxStop(function () {
+        $("#result").removeClass("text-center");
+        $("#upload").prop("disabled", "");
+        $('html, body').animate({
+            scrollTop: $("#result").offset().top
+        }, 2000);
+    });
 
     function uploadFiles() {
         var inputs = $(".file");
@@ -85,16 +100,19 @@
                 processData: false,
                 contentType: false,
                 type: "POST",
+
                 success: function (result) {
-                    var blob = new Blob([result]);
-                    var a = document.createElement('a');
-                    var url = window.URL.createObjectURL(blob);
-                    a.href = url;
-                    a.download = 'Best Schedule.csv';
-                    document.body.append(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
+                    // var blob = new Blob([result]);
+                    // var a = document.createElement('a');
+                    // var url = window.URL.createObjectURL(blob);
+                    // a.href = url;
+                    // a.download = 'Best Schedule.csv';
+                    // document.body.append(a);
+                    // a.click();
+                    // a.remove();
+                    // window.URL.revokeObjectURL(url);
+
+                    $("#result").html(result);
                 },
                 error: function (error) {
                     const obj = JSON.parse(error.responseText);

@@ -1,0 +1,70 @@
+﻿@model Dictionary<SchedualTest.Models.Entities.Student, List<SchedualTest.Models.Entities.Exam>>
+
+<table id="studentTable" class="table table-striped table-hover text-center">
+    <thead>
+        <tr>
+            <th>Student Id</th>
+            <th>Student Name</th>
+            <th>Exam List</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in Model.Keys)
+        {
+            string modalId = $"student-{student.StudentId}-Modal";
+            string modalLabel = $"student-{student.StudentId}-ModalLabel";
+            <tr>
+                <td>@student.StudentId</td>
+                <td>@student.StudentName</td>
+                <td>
+                    <label class="link-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#@modalId">
+                        Exam List
+                    </label>
+                    <!-- Modal -->
+                    <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@modalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="@modalLabel">
+                                        Student Exams
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table id="t-@student.StudentId" class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Course Name</th>
+                                                <th>Date and Time</th>
+                                                <th>Room</th>
+                                                <th>Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var exam in Model[student])
+                                            {
+                                                <tr>
+                                                    <td>@exam.Course.CourseName</td>
+                                                    <td>@exam.TimeSlot.StartTime</td>
+                                                    <td>@exam.Room.RoomId</td>
+                                                    <td>@exam.Course.ExamDuration</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <script>
+                                        $('#t-@student.StudentId').DataTable();
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $('#studentTable').DataTable();
+</script>

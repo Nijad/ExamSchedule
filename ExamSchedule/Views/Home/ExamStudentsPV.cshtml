@@ -1,0 +1,40 @@
+﻿@model SchedualTest.Models.Entities.Exam
+<div class="alert alert-success">
+    <table class="table border border-0">
+        <tr>
+            <th>Course Name</th>
+            <th>Start Time</th>
+            <th>Room</th>
+            <th>Duration</th>
+        </tr>
+        <tr>
+            <td>@Model.Course.CourseName</td>
+            <td>@Model.TimeSlot.StartTime</td>
+            <td>@Model.Room.RoomId</td>
+            <td>@Model.Course.ExamDuration</td>
+        </tr>
+    </table>
+</div>
+<table class="table table-striped table-hover" id="t-@Model.ExamId">
+    <thead>
+        <tr>
+            <th>Student Id</th>
+            <th>Student Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in Model.Students)
+        {
+            <tr>
+                <td>@student.StudentId</td>
+                <td>@student.StudentName</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $("#t-@Model.ExamId").DataTable();
+    });
+</script>

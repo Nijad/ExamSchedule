@@ -1,0 +1,51 @@
+﻿@model IEnumerable<SchedualTest.Models.Entities.Exam>
+
+<table id="examTable" class="table table-striped table-hover text-center">
+    <thead>
+        <tr>
+            <th>Course Name</th>
+            <th>Start Time</th>
+            <th>Room</th>
+            <th>Exam Duration</th>
+            <th>Students</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var exam in Model)
+        {
+            string modalId = $"student-{exam.ExamId}-Modal";
+            string modalLabel = $"student-{exam.ExamId}-ModalLabel";
+            <tr>
+                <td>@exam.Course.CourseName</td>
+                <td>@exam.TimeSlot.StartTime</td>
+                <td>@exam.Room.RoomId</td>
+                <td>@exam.Course.ExamDuration</td>
+                <td>
+                    <label class="link-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#@modalId">
+                        Stuedent List
+                    </label>
+                    <!-- Modal -->
+                    <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@modalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="@modalLabel">
+                                        Exam Students
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @Html.Partial("ExamStudentsPV",exam)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $('#examTable').DataTable();
+</script>
