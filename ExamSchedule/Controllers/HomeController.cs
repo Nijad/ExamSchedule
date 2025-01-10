@@ -8,7 +8,6 @@ namespace ExamSchedule.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private Schedule item1;
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -120,7 +119,7 @@ namespace ExamSchedule.Controllers
             return PartialView("ResultPV", gaResult);
         }
 
-        public IActionResult Privacy()
+        public IActionResult About()
         {
             return View();
         }
