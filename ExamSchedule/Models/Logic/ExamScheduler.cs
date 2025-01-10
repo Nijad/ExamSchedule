@@ -8,7 +8,7 @@ namespace ExamSchedule.Models.Logic
         private List<Exam> Exams = new List<Exam>();
         private List<Student> Students;
         private List<Room> Rooms;
-        private List<TimeSlot> TimeSlots;
+        private List<TimeSlot> timeSlots;
         Random rand = new Random();
         public ExamScheduler(IFormFile courseFile,
                              IFormFile studentsFile,
@@ -18,7 +18,7 @@ namespace ExamSchedule.Models.Logic
             Courses = LoadCourses(courseFile);
             Students = LoadStudents(studentsFile);
             Rooms = LoadRooms(roomsFile);
-            TimeSlots = LoadTimeSlots(timeSlotsFile);
+            timeSlots = LoadTimeSlots(timeSlotsFile);
         }
 
         public ExamScheduler(IFormFile courseFile,
@@ -34,36 +34,7 @@ namespace ExamSchedule.Models.Logic
             Courses = LoadCourses(courseFile);
             Students = LoadStudents(studentsFile);
             Rooms = LoadRooms(roomsFile);
-            TimeSlots = new List<TimeSlot>();
-            //calculate time slots
-            DateTime day = startDate;
-            int slotId = 0;
-            while (day <= lastDate)
-            {
-                if (holidays.Contains((int)day.DayOfWeek))
-                {
-                    day = day.AddDays(1);
-                    continue;
-                }
-                double h = Math.Floor(examDuration + gap);
-                double m = (examDuration + gap - h) * 60;
-                DateTime t = new DateTime(day.Year, day.Month, day.Day, 9, 0, 0);
-                for (int i = 0; i < examPerDay; i++)
-                {
-                    TimeSlot timeSlot = new TimeSlot();
-                    timeSlot.SlotId = slotId;
-                    timeSlot.Duration = examDuration;
-                    timeSlot.StartTime = t;
-                    TimeSlots.Add(timeSlot);
-                    slotId++;
-                    if (i < examPerDay - 1)
-                    {
-                        t = t.AddHours(h);
-                        t = t.AddMinutes(m);
-                    }
-                }
-                day = day.AddDays(1);
-            }
+            timeSlots = GenertateTimeSlots(startDate, lastDate, holidays, examDuration, gap, examPerDay);
         }
 
         private List<Course> LoadCourses(IFormFile file)
@@ -165,6 +136,46 @@ namespace ExamSchedule.Models.Logic
             return timeSlots;
         }
 
+        private List<TimeSlot> GenertateTimeSlots(DateTime startDate, 
+            DateTime lastDate, 
+            int[] holidays, 
+            double examDuration, 
+            double gap, 
+            int examPerDay)
+        {
+            timeSlots = new List<TimeSlot>();
+            //calculate time slots
+            DateTime day = startDate;
+            int slotId = 0;
+            while (day <= lastDate)
+            {
+                if (holidays.Contains((int)day.DayOfWeek))
+                {
+                    day = day.AddDays(1);
+                    continue;
+                }
+                double h = Math.Floor(examDuration + gap);
+                double m = (examDuration + gap - h) * 60;
+                DateTime t = new DateTime(day.Year, day.Month, day.Day, 9, 0, 0);
+                for (int i = 0; i < examPerDay; i++)
+                {
+                    TimeSlot timeSlot = new TimeSlot();
+                    timeSlot.SlotId = slotId;
+                    timeSlot.Duration = examDuration;
+                    timeSlot.StartTime = t;
+                    timeSlots.Add(timeSlot);
+                    slotId++;
+                    if (i < examPerDay - 1)
+                    {
+                        t = t.AddHours(h);
+                        t = t.AddMinutes(m);
+                    }
+                }
+                day = day.AddDays(1);
+            }
+            return timeSlots;
+        }
+
         public Schedule GenerateSchedule()
         {
             Schedule schedule = new Schedule();
@@ -177,7 +188,7 @@ namespace ExamSchedule.Models.Logic
                 while (remainingStudents.Any())
                 {
                     Room room = Rooms[rand.Next(Rooms.Count)];
-                    TimeSlot timeSlot = TimeSlots[rand.Next(TimeSlots.Count)];
+                    TimeSlot timeSlot = timeSlots[rand.Next(timeSlots.Count)];
                     List<Student> students = remainingStudents.Take(room.Capacity).ToList();
                     remainingStudents = remainingStudents.Except(students).ToList();
 
@@ -200,7 +211,7 @@ namespace ExamSchedule.Models.Logic
             double mutateRatio = 0.1;
             if (rand.NextDouble() < mutateRatio)
             {
-                TimeSlot timeSlot = TimeSlots[rand.Next(TimeSlots.Count)];
+                TimeSlot timeSlot = timeSlots[rand.Next(timeSlots.Count)];
                 child.Exams[rand.Next(child.Exams.Count)].TimeSlot = timeSlot;
             }
             return child;
