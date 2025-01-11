@@ -5,7 +5,6 @@ namespace ExamSchedule.Models.Logic
     public class ExamScheduler
     {
         private List<Course> Courses;
-        private List<Exam> Exams = new List<Exam>();
         private List<Student> Students;
         private List<Room> Rooms;
         private List<TimeSlot> timeSlots;
@@ -62,7 +61,6 @@ namespace ExamSchedule.Models.Logic
 
         private List<Student> LoadStudents(IFormFile file)
         {
-            List<Exam> exams = new List<Exam>();
             string filePath = Path.GetTempFileName();
 
             using (var stream = File.Create(filePath))
@@ -185,6 +183,9 @@ namespace ExamSchedule.Models.Logic
             foreach (Course course in Courses)
             {
                 List<Student> remainingStudents = new(course.Students);
+                //distributing each course students into rooms randoly
+                //taking into account the capacity of each room
+                //and assign a time slot randomly to generted exam
                 while (remainingStudents.Any())
                 {
                     Room room = Rooms[rand.Next(Rooms.Count)];
@@ -202,18 +203,20 @@ namespace ExamSchedule.Models.Logic
                     });
                 }
             }
+            //calculate conflicts
             schedule.CalculateConflict();
             return schedule;
         }
 
+
         public Schedule Mutate(Schedule child)
         {
+            //propabilty to change time slot randomly of random exam (child)
             double mutateRatio = 0.1;
             if (rand.NextDouble() < mutateRatio)
-            {
-                TimeSlot timeSlot = timeSlots[rand.Next(timeSlots.Count)];
-                child.Exams[rand.Next(child.Exams.Count)].TimeSlot = timeSlot;
-            }
+                child.Exams[rand.Next(child.Exams.Count)].TimeSlot =
+                    timeSlots[rand.Next(timeSlots.Count)];
+
             return child;
         }
 
@@ -222,13 +225,11 @@ namespace ExamSchedule.Models.Logic
             Schedule child = new Schedule();
             child.Exams = new List<Exam>();
             foreach (Course course in Courses)
-            {
-                int val = rand.Next(2);
-                if (val == 0)
+                if (rand.Next(2) == 0)
                     child.Exams.AddRange(parent1.Exams.Where(x => x.Course == course));
                 else
                     child.Exams.AddRange(parent2.Exams.Where(x => x.Course == course));
-            }
+
             return child;
         }
     }

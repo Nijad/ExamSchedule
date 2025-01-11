@@ -6,6 +6,9 @@ namespace ExamSchedule.Models.Logic
     {
         public List<Exam> Exams { get; set; }
         public int Conflict { get; set; }
+        //fitnes is a relative number expresses the extent of conflicts
+        //ranging between zero and one
+        //one means no coflict 
         public double Fitness
         {
             get
