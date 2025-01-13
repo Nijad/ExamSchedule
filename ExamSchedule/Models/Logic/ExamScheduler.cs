@@ -1,4 +1,5 @@
 ﻿using ExamSchedule.Models.Entities;
+using System.Globalization;
 
 namespace ExamSchedule.Models.Logic
 {
@@ -126,7 +127,7 @@ namespace ExamSchedule.Models.Logic
                 TimeSlot timeSlot = new TimeSlot
                 {
                     SlotId = int.Parse(columns[0]),
-                    StartTime = DateTime.Parse(columns[1]),
+                    StartTime = DateTime.ParseExact(columns[1],"d/M/yyyy H:m", CultureInfo.InvariantCulture),
                     Duration = double.Parse(columns[2])
                 };
                 timeSlots.Add(timeSlot);
